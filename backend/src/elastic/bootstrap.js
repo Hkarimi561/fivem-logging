@@ -1,6 +1,6 @@
 const client = require('./client');
 
-const INDEX_NAME = 'fivem-logs';
+const INDEX_NAME = process.env.ELASTICSEARCH_INDEX || 'fivem-logs';
 
 async function bootstrap() {
   try {
