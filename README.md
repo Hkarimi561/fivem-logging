@@ -9,7 +9,7 @@
 
   <h1>FiveM Log Management System</h1>
   <p>
-    An enterprise-grade, highly scalable distributed logging system designed specifically for high-traffic FiveM servers.
+    An open-source, easily expandable logging foundation designed to provide deep structural insights for FiveM servers.
   </p>
 
   <p>
@@ -31,9 +31,9 @@
 
 ## Overview
 
-The **FiveM Log Management System** provides administrators, developers, and server staff with deep, real-time insights into server events. Built to endure the high-throughput nature of heavily populated FiveM Roleplay and Freeroam servers, it leverages **Elasticsearch** for lightning-fast querying and **Next.js** for an elegantly crafted, dark-mode accessible admin dashboard.
+The **FiveM Log Management System** provides administrators and developers with real-time insights into server events. Built around **Elasticsearch** for fast querying and **Next.js** for a modern admin dashboard, it serves as a solid, developer-friendly starting point that you can easily fork, expand, and tailor to your server's exact needs.
 
-Stop relying on slow, unsearchable Discord webhook logs. Take control of your server's data with advanced filtering, weapon/vehicle statistics aggregations, and secure Discord OAuth2 staff authentication.
+Stop relying on slow, unsearchable Discord webhook logs. Take control of your server's data with advanced filtering and weapon/vehicle statistics aggregations.
 
 ## Features
 
@@ -108,6 +108,14 @@ We believe in making powerful tools easy to use through exceptional documentatio
 - **[Installation & Setup](docs/SETUP.md):** Step-by-step instructions from a blank VPS to a production-ready application.
 - **[API Reference](docs/API_REFERENCE.md):** Connect external tools or write your own custom log ingesters using the REST API.
 - **[FiveM Integration](docs/INTEGRATION.md):** Implement Lua exports directly into your existing scripts.
+
+## Roadmap & Upcoming Features
+
+Because this is a growing foundation, several advanced features are planned for future iterations to make it even more capable:
+
+- **Role-Based Access Control (RBAC):** Granular channel and event access limits based on specific Discord Roles (so local-moderators can only see assigned logs).
+- **Expanded Aggregations:** More detailed charts and graphs for economy tracking natively in the dashboard.
+- **Enhanced Lua Exports:** Even more pre-configured exports for popular unified frameworks.
 
 ## Contributing
 
