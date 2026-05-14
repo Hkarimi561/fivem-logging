@@ -1,0 +1,11 @@
+.git
+.github
+**/node_modules
+**/.next
+**/.env
+**/.env.*
+**/*.md
+!backend/database/*.sql
+.cursor
+mcps
+terminals

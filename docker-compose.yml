@@ -1,0 +1,76 @@
+# Full local stack per docs/SETUP.md: MySQL 8, Elasticsearch 9.x, backend + dashboard.
+# Usage: copy dashboard/env.example values into a .env file next to this compose file, then:
+#   docker compose up --build
+# Ports: backend 3000, dashboard 3001, MySQL 3306, Elasticsearch 9200.
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: fivem_logs
+      MYSQL_USER: fivem
+      MYSQL_PASSWORD: fivem
+    ports:
+      - "3306:3306"
+    volumes:
+      - fivem_logs_mysql:/var/lib/mysql
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 45s
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.2
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    volumes:
+      - fivem_logs_es:/usr/share/elasticsearch/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    environment:
+      PORT: "3000"
+      ELASTICSEARCH_NODE: http://elasticsearch:9200
+      ELASTICSEARCH_INDEX: ${ELASTICSEARCH_INDEX:-fivem-logs}
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      MYSQL_USER: fivem
+      MYSQL_PASSWORD: fivem
+      MYSQL_DATABASE: fivem_logs
+      JWT_SECRET: ${JWT_SECRET:-change-me-use-openssl-rand-hex-32-in-production}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+      DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI:-http://localhost:3001/api/auth/callback}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+      DASHBOARD_PORT: "3001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+
+volumes:
+  fivem_logs_mysql:
+  fivem_logs_es:
