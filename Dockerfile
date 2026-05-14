@@ -7,7 +7,8 @@ FROM node:22-bookworm-slim AS dashboard-builder
 WORKDIR /build/dashboard
 
 COPY dashboard/package.json dashboard/package-lock.json ./
-RUN npm ci
+# package-lock.json can lag package.json (npm ci requires a perfect match); install reconciles in the image.
+RUN npm install --no-audit --no-fund
 
 COPY dashboard/ ./
 
