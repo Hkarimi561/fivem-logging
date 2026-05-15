@@ -65,6 +65,7 @@ services:
       BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-change-this-password}
       # Set to true only behind HTTPS; HTTP (default VPS IP) must stay false or cookies are dropped
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      BACKEND_INTERNAL_URL: http://127.0.0.1:3000
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://62.60.129.231:3000}
       DASHBOARD_PORT: "3001"
     depends_on:

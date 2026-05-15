@@ -4,7 +4,11 @@ import { query } from '@/lib/db'
 // Ensures tables and upserts categories/eventTypes from backend meta/terms
 export async function GET() {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    // In Docker, backend runs on :3000 in the same container; use internal URL when set.
+    const backendUrl =
+      process.env.BACKEND_INTERNAL_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      'http://127.0.0.1:3000'
 
     const fetchTerms = async () => {
       const res = await fetch(`${backendUrl}/meta/terms?size=500`, { cache: 'no-store' })
@@ -52,8 +56,6 @@ export async function GET() {
       if (!ev) continue
       await query(`INSERT IGNORE INTO event_types (name) VALUES (?)`, [ev])
     }
-
-    console.log(eventTypes)
 
     return NextResponse.json({
       synced: true,

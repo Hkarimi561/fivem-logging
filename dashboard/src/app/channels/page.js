@@ -274,14 +274,11 @@ function CreateChannelModal({ serverId, onClose, onCreated }) {
   const [eventOptions, setEventOptions] = useState([])
   const [eventLoading, setEventLoading] = useState(true)
 
-  // Fetch dynamic event types from backend-synced MySQL
   useEffect(() => {
     async function loadEventTypes() {
       try {
-        const res = await fetch('/api/meta/list')
-        if (!res.ok) throw new Error('Failed to load meta terms')
-        const data = await res.json()
-        // data.eventTypes can be array of strings or {value,label}
+        const { fetchMetaTerms } = await import('@/lib/metaTerms')
+        const data = await fetchMetaTerms()
         const types = (data.eventTypes || []).map(e => (typeof e === 'string' ? e : e.value)).filter(Boolean)
         setEventOptions(types)
       } catch (err) {
@@ -434,9 +431,8 @@ function EditChannelModal({ serverId, channel, onClose, onUpdated }) {
   useEffect(() => {
     async function loadEventTypes() {
       try {
-        const res = await fetch('/api/meta/list')
-        if (!res.ok) throw new Error('Failed to load meta terms')
-        const data = await res.json()
+        const { fetchMetaTerms } = await import('@/lib/metaTerms')
+        const data = await fetchMetaTerms()
         const types = (data.eventTypes || []).map(e => (typeof e === 'string' ? e : e.value)).filter(Boolean)
         setEventOptions(types)
       } catch (err) {

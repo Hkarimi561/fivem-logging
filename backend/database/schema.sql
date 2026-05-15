@@ -124,3 +124,25 @@ INSERT INTO log_channels (server_id, name, slug, description, event_types, color
 (1, 'Inventory', 'inventory', 'Item transfers and purchases', '["item_swapped", "item_bought", "diamonds_swapped"]', '#f59e0b', 'package'),
 (1, 'Admin Actions', 'admin-actions', 'TxAdmin and moderator actions', '["tx_kicked", "tx_banned", "tx_warned", "tx_healed", "tx_dm", "tx_spectate_start", "tx_action_revoked", "tx_announcement"]', '#ef4444', 'shield'),
 (1, 'Resources', 'resources', 'Server resource start/stop events', '["resource_start", "resource_stop"]', '#8b5cf6', 'server');
+
+-- Default event types / categories for channel UI (also synced from Elasticsearch when logs exist)
+INSERT IGNORE INTO categories (name) VALUES
+('economy'), ('player'), ('admin'), ('chat'), ('inventory'), ('resources');
+
+INSERT IGNORE INTO event_types (name) VALUES
+('player_joining'),
+('player_dropped'),
+('chat_message'),
+('item_swapped'),
+('item_bought'),
+('diamonds_swapped'),
+('tx_kicked'),
+('tx_banned'),
+('tx_warned'),
+('tx_healed'),
+('tx_dm'),
+('tx_spectate_start'),
+('tx_action_revoked'),
+('tx_announcement'),
+('resource_start'),
+('resource_stop');
