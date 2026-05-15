@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { query, queryOne } from '@/lib/db'
+import { parseJsonField } from '@/lib/jsonField'
 
 // Get channels for a server
 export async function GET(request, { params }) {
@@ -51,14 +52,17 @@ export async function GET(request, { params }) {
 
     const channels = allChannels.map(channel => ({
       ...channel,
-      eventTypes: JSON.parse(channel.event_types || '[]')
+      eventTypes: parseJsonField(channel.event_types, [])
     }))
 
     
     return NextResponse.json({ channels })
   } catch (error) {
     console.error('Get channels error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error', details: error.message },
+      { status: 500 }
+    )
   }
 }
 

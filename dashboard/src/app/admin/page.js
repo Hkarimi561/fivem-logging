@@ -19,7 +19,10 @@ import {
   Trash2,
   Copy,
   Check,
-  ExternalLink
+  Tags,
+  Pencil,
+  RefreshCw,
+  X
 } from "lucide-react"
 
 export default function AdminPage() {
@@ -41,6 +44,14 @@ export default function AdminPage() {
     isAdmin: false,
     serverIds: []
   })
+  const [eventTypes, setEventTypes] = useState([])
+  const [showCreateEventType, setShowCreateEventType] = useState(false)
+  const [newEventTypeName, setNewEventTypeName] = useState('')
+  const [creatingEventType, setCreatingEventType] = useState(false)
+  const [editingEventTypeId, setEditingEventTypeId] = useState(null)
+  const [editingEventTypeName, setEditingEventTypeName] = useState('')
+  const [savingEventType, setSavingEventType] = useState(false)
+  const [syncingEventTypes, setSyncingEventTypes] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -59,9 +70,10 @@ export default function AdminPage() {
   async function fetchData() {
     setLoading(true)
     try {
-      const [serversRes, usersRes] = await Promise.all([
+      const [serversRes, usersRes, eventTypesRes] = await Promise.all([
         fetch('/api/admin/servers'),
-        fetch('/api/admin/users')
+        fetch('/api/admin/users'),
+        fetch('/api/admin/event-types')
       ])
       
       if (serversRes.ok) {
@@ -72,6 +84,11 @@ export default function AdminPage() {
       if (usersRes.ok) {
         const data = await usersRes.json()
         setUsers(data.users || [])
+      }
+
+      if (eventTypesRes.ok) {
+        const data = await eventTypesRes.json()
+        setEventTypes(data.eventTypes || [])
       }
     } catch (error) {
       console.error('Failed to fetch admin data:', error)
@@ -134,6 +151,105 @@ export default function AdminPage() {
     })
   }
 
+  async function createEventType(e) {
+    e.preventDefault()
+    setCreatingEventType(true)
+    try {
+      const res = await fetch('/api/admin/event-types', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newEventTypeName })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setEventTypes(prev => [...prev, data.eventType].sort((a, b) => a.name.localeCompare(b.name)))
+        setNewEventTypeName('')
+        setShowCreateEventType(false)
+      } else {
+        alert(data.error || 'Failed to create event type')
+      }
+    } catch (error) {
+      console.error('Failed to create event type:', error)
+    } finally {
+      setCreatingEventType(false)
+    }
+  }
+
+  function startEditEventType(eventType) {
+    setEditingEventTypeId(eventType.id)
+    setEditingEventTypeName(eventType.name)
+  }
+
+  function cancelEditEventType() {
+    setEditingEventTypeId(null)
+    setEditingEventTypeName('')
+  }
+
+  async function saveEventType(eventTypeId) {
+    setSavingEventType(true)
+    try {
+      const res = await fetch(`/api/admin/event-types/${eventTypeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editingEventTypeName })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setEventTypes(prev =>
+          prev
+            .map(et => (et.id === eventTypeId ? data.eventType : et))
+            .sort((a, b) => a.name.localeCompare(b.name))
+        )
+        cancelEditEventType()
+      } else {
+        alert(data.error || 'Failed to update event type')
+      }
+    } catch (error) {
+      console.error('Failed to update event type:', error)
+    } finally {
+      setSavingEventType(false)
+    }
+  }
+
+  async function deleteEventType(eventType) {
+    if (!confirm(`Delete event type "${eventType.name}"? It will be removed from all log channels.`)) {
+      return
+    }
+    try {
+      const res = await fetch(`/api/admin/event-types/${eventType.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setEventTypes(prev => prev.filter(et => et.id !== eventType.id))
+        if (editingEventTypeId === eventType.id) cancelEditEventType()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to delete event type')
+      }
+    } catch (error) {
+      console.error('Failed to delete event type:', error)
+    }
+  }
+
+  async function syncEventTypesFromEs() {
+    setSyncingEventTypes(true)
+    try {
+      const res = await fetch('/api/meta/sync')
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || data.details || 'Sync failed')
+        return
+      }
+      const listRes = await fetch('/api/admin/event-types')
+      if (listRes.ok) {
+        const listData = await listRes.json()
+        setEventTypes(listData.eventTypes || [])
+      }
+    } catch (error) {
+      console.error('Failed to sync event types:', error)
+    } finally {
+      setSyncingEventTypes(false)
+    }
+  }
+
   async function createUser(e) {
     e.preventDefault()
     setCreatingUser(true)
@@ -176,7 +292,7 @@ export default function AdminPage() {
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-white">Admin Panel</h2>
             <p className="text-zinc-400 mt-1">
-              Manage servers and users
+              Manage servers, users, and event types
             </p>
           </div>
           <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
@@ -338,6 +454,140 @@ export default function AdminPage() {
               <div className="text-center py-8 text-zinc-500">
                 <Server className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>No servers yet. Create your first server above.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Event Types */}
+        <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Tags className="h-5 w-5 text-amber-400" />
+                  Event Types
+                </CardTitle>
+                <CardDescription className="text-zinc-400">
+                  Registry used in log channels and filters (lowercase_snake_case)
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={syncEventTypesFromEs}
+                  disabled={syncingEventTypes}
+                  className="border-zinc-700"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${syncingEventTypes ? 'animate-spin' : ''}`} />
+                  {syncingEventTypes ? 'Syncing...' : 'Sync from ES'}
+                </Button>
+                <Button
+                  onClick={() => setShowCreateEventType(!showCreateEventType)}
+                  className="bg-amber-600 hover:bg-amber-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Event Type
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {showCreateEventType && (
+              <form onSubmit={createEventType} className="mb-6 p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                <h4 className="text-sm font-medium text-white mb-4">Create Event Type</h4>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Input
+                    placeholder="e.g. player_joining"
+                    value={newEventTypeName}
+                    onChange={e => setNewEventTypeName(e.target.value)}
+                    className="bg-zinc-900 border-zinc-700 font-mono"
+                    required
+                  />
+                  <div className="flex gap-2 shrink-0">
+                    <Button type="submit" disabled={creatingEventType} className="bg-green-600 hover:bg-green-700">
+                      {creatingEventType ? 'Creating...' : 'Create'}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => setShowCreateEventType(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <Skeleton key={i} className="h-12 bg-zinc-800/50" />
+                ))}
+              </div>
+            ) : eventTypes.length > 0 ? (
+              <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                {eventTypes.map(et => (
+                  <div
+                    key={et.id}
+                    className="flex items-center justify-between gap-3 p-3 bg-zinc-800/30 rounded-lg border border-zinc-800"
+                  >
+                    {editingEventTypeId === et.id ? (
+                      <>
+                        <Input
+                          value={editingEventTypeName}
+                          onChange={e => setEditingEventTypeName(e.target.value)}
+                          className="bg-zinc-900 border-zinc-700 font-mono flex-1"
+                        />
+                        <div className="flex gap-2 shrink-0">
+                          <Button
+                            size="sm"
+                            disabled={savingEventType}
+                            onClick={() => saveEventType(et.id)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            {savingEventType ? 'Saving...' : 'Save'}
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={cancelEditEventType}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="min-w-0">
+                          <code className="text-sm text-amber-200/90">{et.name}</code>
+                          {et.created_at && (
+                            <p className="text-xs text-zinc-500 mt-0.5">
+                              Added {new Date(et.created_at).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-zinc-700"
+                            onClick={() => startEditEventType(et)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                            onClick={() => deleteEventType(et)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-zinc-500">
+                <Tags className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No event types yet. Add one or sync from Elasticsearch.</p>
               </div>
             )}
           </CardContent>

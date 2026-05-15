@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Select } from "@/components/ui/select"
 import { useAuth } from "@/lib/useAuth"
+import { parseJsonField } from "@/lib/jsonField"
 import { 
   Server, 
   ArrowLeft, 
@@ -379,11 +380,11 @@ export default function ServerManagePage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="flex gap-1">
-                        {JSON.parse(channel.event_types || '[]').slice(0, 2).map(type => (
+                        {parseJsonField(channel.event_types, []).slice(0, 2).map(type => (
                           <Badge key={type} variant="outline" className="text-xs border-zinc-700">{type}</Badge>
                         ))}
-                        {JSON.parse(channel.event_types || '[]').length > 2 && (
-                          <Badge variant="outline" className="text-xs border-zinc-700">+{JSON.parse(channel.event_types).length - 2}</Badge>
+                        {parseJsonField(channel.event_types, []).length > 2 && (
+                          <Badge variant="outline" className="text-xs border-zinc-700">+{parseJsonField(channel.event_types, []).length - 2}</Badge>
                         )}
                       </div>
                       <Button 

@@ -78,6 +78,19 @@ CREATE TABLE IF NOT EXISTS server_admins (
     UNIQUE KEY unique_server_admin (server_id, user_id)
 );
 
+-- Meta registry for channel/filter dropdowns (also synced from Elasticsearch)
+CREATE TABLE IF NOT EXISTS categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS event_types (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Weapon usage stats (populated from logs)
 CREATE TABLE IF NOT EXISTS weapon_stats (
     id INT AUTO_INCREMENT PRIMARY KEY,
