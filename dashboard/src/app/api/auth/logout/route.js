@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { query } from '@/lib/db'
+import { getAuthCookieOptions } from '@/lib/sessionCookie'
+
+function clearAuthCookie(response) {
+  response.cookies.set('auth_token', '', { ...getAuthCookieOptions(0), maxAge: 0 })
+}
 
 export async function POST() {
   const cookieStore = cookies()
@@ -8,9 +13,10 @@ export async function POST() {
   if (token) {
     await query(`DELETE FROM sessions WHERE token = ?`, [token])
   }
-  cookieStore.delete('auth_token')
 
-  return NextResponse.json({ success: true })
+  const response = NextResponse.json({ success: true })
+  clearAuthCookie(response)
+  return response
 }
 
 export async function GET(request) {
@@ -19,7 +25,8 @@ export async function GET(request) {
   if (token) {
     await query(`DELETE FROM sessions WHERE token = ?`, [token])
   }
-  cookieStore.delete('auth_token')
 
-  return NextResponse.redirect(new URL('/login', request.url))
+  const response = NextResponse.redirect(new URL('/login', request.url))
+  clearAuthCookie(response)
+  return response
 }

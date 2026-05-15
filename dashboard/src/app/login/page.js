@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from '@/lib/useAuth'
+import { AUTH_TOKEN_STORAGE_KEY } from '@/lib/getToken'
 
 function LoginContent() {
   const { user, loading, refresh } = useAuth()
@@ -33,6 +34,7 @@ function LoginContent() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username, password })
       })
 
@@ -41,6 +43,10 @@ function LoginContent() {
       if (!res.ok) {
         setError(data.error || 'Login failed')
         return
+      }
+
+      if (data.token) {
+        localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.token)
       }
 
       await refresh()

@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose'
-import { cookies } from 'next/headers'
 import bcrypt from 'bcryptjs'
 import { query, queryOne } from './db'
+import { getTokenFromRequest } from './getToken'
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this'
@@ -57,7 +57,7 @@ export async function bootstrapAdminIfNeeded(username, password) {
 export async function authenticateUser(username, password) {
   const user = await queryOne(
     'SELECT * FROM users WHERE username = ?',
-    [username.trim()]
+    [username.trim().toLowerCase()]
   )
   if (!user) return null
 
@@ -131,8 +131,7 @@ export async function verifyToken(token) {
 }
 
 export async function getCurrentUser() {
-  const cookieStore = cookies()
-  const token = cookieStore.get('auth_token')?.value
+  const token = getTokenFromRequest()
 
   if (!token) return null
 

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { getCurrentUser, getSessionByToken } from '@/lib/auth'
+import { getCurrentUser, getSessionByToken, upsertSession } from '@/lib/auth'
 import { query } from '@/lib/db'
+import { getAuthCookieOptions } from '@/lib/sessionCookie'
+import { getTokenFromRequest } from '@/lib/getToken'
 
 export async function GET() {
   try {
@@ -11,13 +12,15 @@ export async function GET() {
       return NextResponse.json({ user: null }, { status: 401 })
     }
 
-    const cookieStore = cookies()
-    const authToken = cookieStore.get('auth_token')?.value
+    const authToken = getTokenFromRequest()
     if (authToken) {
       await query(`DELETE FROM sessions WHERE user_id = ? AND expires_at <= NOW()`, [user.id])
-      const session = await getSessionByToken(authToken)
+      let session = await getSessionByToken(authToken)
       if (!session) {
-        cookieStore.delete('auth_token')
+        await upsertSession({ userId: user.id, token: authToken })
+        session = await getSessionByToken(authToken)
+      }
+      if (!session) {
         return NextResponse.json({ user: null }, { status: 401 })
       }
     }

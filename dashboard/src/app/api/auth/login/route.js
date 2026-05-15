@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import {
   authenticateUser,
   bootstrapAdminIfNeeded,
   loginUser
 } from '@/lib/auth'
 import { queryOne } from '@/lib/db'
+import { getAuthCookieOptions } from '@/lib/sessionCookie'
 
 export async function POST(request) {
   try {
@@ -27,24 +27,17 @@ export async function POST(request) {
       }
     }
 
-    let user = await authenticateUser(username, password)
+    const user = await authenticateUser(username, password)
 
     if (!user) {
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 })
     }
 
     const token = await loginUser(user)
-    const cookieStore = cookies()
-    cookieStore.set('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/'
-    })
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
+      token,
       user: {
         id: user.id,
         username: user.username,
@@ -52,6 +45,10 @@ export async function POST(request) {
         isAdmin: Boolean(user.is_admin)
       }
     })
+
+    response.cookies.set('auth_token', token, getAuthCookieOptions())
+
+    return response
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
