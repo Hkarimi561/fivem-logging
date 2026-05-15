@@ -14,7 +14,7 @@ RUN npm install --no-audit --no-fund --include=optional
 COPY dashboard/ ./
 
 # NEXT_PUBLIC_* is inlined at build time for client bundles.
-ARG NEXT_PUBLIC_API_URL=http://localhost:3000
+ARG NEXT_PUBLIC_API_URL=http://62.60.129.231:3000
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 RUN NEXT_VER=$(node -p 'require("next/package.json").version') \
