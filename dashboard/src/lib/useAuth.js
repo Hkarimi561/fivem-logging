@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AUTH_TOKEN_STORAGE_KEY } from './getToken'
+import { AUTH_TOKEN_STORAGE_KEY } from './authConstants'
 
 const AuthContext = createContext(null)
 

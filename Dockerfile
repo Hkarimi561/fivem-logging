@@ -17,9 +17,7 @@ COPY dashboard/ ./
 ARG NEXT_PUBLIC_API_URL=http://62.60.129.231:3000
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
-RUN NEXT_VER=$(node -p 'require("next/package.json").version') \
-  && npm install "@next/swc-linux-x64-gnu@${NEXT_VER}" --no-save --no-audit --no-fund \
-  && npm run build \
+RUN npm run build \
   && npm prune --omit=dev
 
 

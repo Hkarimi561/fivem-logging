@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from '@/lib/useAuth'
-import { AUTH_TOKEN_STORAGE_KEY } from '@/lib/getToken'
+import { AUTH_TOKEN_STORAGE_KEY } from '@/lib/authConstants'
 
 function LoginContent() {
   const { user, loading, refresh } = useAuth()

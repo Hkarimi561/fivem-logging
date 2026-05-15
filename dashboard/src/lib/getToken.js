@@ -1,6 +1,6 @@
 import { cookies, headers } from 'next/headers'
 
-/** Read JWT from cookie or Authorization header (Route Handlers / Server Components). */
+/** Server-only: read JWT from cookie or Authorization header. */
 export function getTokenFromRequest() {
   const cookieStore = cookies()
   const cookieToken = cookieStore.get('auth_token')?.value
@@ -13,5 +13,3 @@ export function getTokenFromRequest() {
 
   return null
 }
-
-export const AUTH_TOKEN_STORAGE_KEY = 'auth_token'
