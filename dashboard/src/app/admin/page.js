@@ -29,9 +29,18 @@ export default function AdminPage() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreateServer, setShowCreateServer] = useState(false)
-  const [newServer, setNewServer] = useState({ name: '', identifier: '', discordGuildId: '' })
+  const [newServer, setNewServer] = useState({ name: '', identifier: '' })
   const [creating, setCreating] = useState(false)
   const [copiedKey, setCopiedKey] = useState(null)
+  const [showCreateUser, setShowCreateUser] = useState(false)
+  const [creatingUser, setCreatingUser] = useState(false)
+  const [newUser, setNewUser] = useState({
+    username: '',
+    password: '',
+    displayName: '',
+    isAdmin: false,
+    serverIds: []
+  })
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -85,7 +94,7 @@ export default function AdminPage() {
       if (res.ok) {
         const data = await res.json()
         setServers([...servers, data])
-        setNewServer({ name: '', identifier: '', discordGuildId: '' })
+        setNewServer({ name: '', identifier: '' })
         setShowCreateServer(false)
       }
     } catch (error) {
@@ -114,6 +123,39 @@ export default function AdminPage() {
     navigator.clipboard.writeText(key)
     setCopiedKey(key)
     setTimeout(() => setCopiedKey(null), 2000)
+  }
+
+  function toggleServerForNewUser(serverId) {
+    setNewUser(prev => {
+      const ids = prev.serverIds.includes(serverId)
+        ? prev.serverIds.filter(id => id !== serverId)
+        : [...prev.serverIds, serverId]
+      return { ...prev, serverIds: ids }
+    })
+  }
+
+  async function createUser(e) {
+    e.preventDefault()
+    setCreatingUser(true)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser)
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setUsers([data.user, ...users])
+        setNewUser({ username: '', password: '', displayName: '', isAdmin: false, serverIds: [] })
+        setShowCreateUser(false)
+      } else {
+        alert(data.error || 'Failed to create user')
+      }
+    } catch (error) {
+      console.error('Failed to create user:', error)
+    } finally {
+      setCreatingUser(false)
+    }
   }
 
   if (authLoading || user?.isAdmin !== true) {
@@ -214,7 +256,7 @@ export default function AdminPage() {
             {showCreateServer && (
               <form onSubmit={createServer} className="mb-6 p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
                 <h4 className="text-sm font-medium text-white mb-4">Create New Server</h4>
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2">
                   <Input
                     placeholder="Server Name"
                     value={newServer.name}
@@ -226,13 +268,6 @@ export default function AdminPage() {
                     placeholder="Identifier (e.g., my-server)"
                     value={newServer.identifier}
                     onChange={e => setNewServer({ ...newServer, identifier: e.target.value })}
-                    className="bg-zinc-900 border-zinc-700"
-                    required
-                  />
-                  <Input
-                    placeholder="Discord Guild ID (zorunlu)"
-                    value={newServer.discordGuildId}
-                    onChange={e => setNewServer({ ...newServer, discordGuildId: e.target.value })}
                     className="bg-zinc-900 border-zinc-700"
                     required
                   />
@@ -311,15 +346,89 @@ export default function AdminPage() {
         {/* Users */}
         <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Users className="h-5 w-5 text-green-400" />
-              Users
-            </CardTitle>
-            <CardDescription className="text-zinc-400">
-              Users who have logged in via Discord
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Users className="h-5 w-5 text-green-400" />
+                  Users
+                </CardTitle>
+                <CardDescription className="text-zinc-400">
+                  Manage dashboard accounts and server access
+                </CardDescription>
+              </div>
+              <Button
+                onClick={() => setShowCreateUser(!showCreateUser)}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add User
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
+            {showCreateUser && (
+              <form onSubmit={createUser} className="mb-6 p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                <h4 className="text-sm font-medium text-white mb-4">Create New User</h4>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Input
+                    placeholder="Username"
+                    value={newUser.username}
+                    onChange={e => setNewUser({ ...newUser, username: e.target.value })}
+                    className="bg-zinc-900 border-zinc-700"
+                    required
+                  />
+                  <Input
+                    type="password"
+                    placeholder="Password (min 8 characters)"
+                    value={newUser.password}
+                    onChange={e => setNewUser({ ...newUser, password: e.target.value })}
+                    className="bg-zinc-900 border-zinc-700"
+                    required
+                    minLength={8}
+                  />
+                  <Input
+                    placeholder="Display name (optional)"
+                    value={newUser.displayName}
+                    onChange={e => setNewUser({ ...newUser, displayName: e.target.value })}
+                    className="bg-zinc-900 border-zinc-700"
+                  />
+                  <label className="flex items-center gap-2 text-sm text-zinc-300">
+                    <input
+                      type="checkbox"
+                      checked={newUser.isAdmin}
+                      onChange={e => setNewUser({ ...newUser, isAdmin: e.target.checked })}
+                      className="rounded border-zinc-600"
+                    />
+                    Global admin
+                  </label>
+                </div>
+                {servers.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm text-zinc-400 mb-2">Server access</p>
+                    <div className="flex flex-wrap gap-2">
+                      {servers.map(s => (
+                        <label key={s.id} className="flex items-center gap-2 text-sm text-zinc-300 bg-zinc-900 px-3 py-2 rounded border border-zinc-700">
+                          <input
+                            type="checkbox"
+                            checked={newUser.serverIds.includes(s.id)}
+                            onChange={() => toggleServerForNewUser(s.id)}
+                          />
+                          {s.name}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="flex gap-2 mt-4">
+                  <Button type="submit" disabled={creatingUser} className="bg-green-600 hover:bg-green-700">
+                    {creatingUser ? 'Creating...' : 'Create User'}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setShowCreateUser(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            )}
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map(i => (
@@ -334,25 +443,19 @@ export default function AdminPage() {
                     className="flex items-center justify-between p-3 bg-zinc-800/30 rounded-lg border border-zinc-800"
                   >
                     <div className="flex items-center gap-3">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img 
-                        src={u.discord_avatar 
-                          ? `https://cdn.discordapp.com/avatars/${u.discord_id}/${u.discord_avatar}.png`
-                          : `https://cdn.discordapp.com/embed/avatars/${parseInt(u.discord_id) % 5}.png`
-                        }
-                        alt={u.discord_username}
-                        className="w-10 h-10 rounded-full"
-                      />
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-sm font-semibold text-white">
+                        {(u.display_name || u.username || '?').slice(0, 2).toUpperCase()}
+                      </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-white">{u.discord_username}</span>
+                          <span className="font-medium text-white">{u.display_name || u.username}</span>
                           {Boolean(u.is_admin) && (
                             <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs">
                               Admin
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-zinc-500">ID: {u.discord_id}</p>
+                        <p className="text-xs text-zinc-500">@{u.username}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

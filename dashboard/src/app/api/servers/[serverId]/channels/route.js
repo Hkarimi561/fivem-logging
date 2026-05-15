@@ -33,8 +33,8 @@ export async function GET(request, { params }) {
     let isServerAdmin = false
     if (!isGlobalAdmin) {
       const adminRecord = await queryOne(
-        `SELECT 1 FROM server_admins WHERE server_id = ? AND discord_id = ? AND permission_level IN ('admin','moderator')`,
-        [dbServerId, user.discord_id]
+        `SELECT 1 FROM server_admins WHERE server_id = ? AND user_id = ? AND permission_level IN ('admin','moderator')`,
+        [dbServerId, user.id]
       )
       isServerAdmin = !!adminRecord
     }
@@ -81,14 +81,14 @@ export async function POST(request, { params }) {
     let isServerAdmin = false
     if (!isGlobalAdmin) {
       const serverAdminRecord = await queryOne(
-        `SELECT * FROM server_admins WHERE server_id = ? AND discord_id = ? AND permission_level IN ('admin', 'moderator')`,
-        [serverId, user.discord_id]
+        `SELECT * FROM server_admins WHERE server_id = ? AND user_id = ? AND permission_level IN ('admin', 'moderator')`,
+        [serverId, user.id]
       )
       isServerAdmin = !!serverAdminRecord
     }
     
     if (!isGlobalAdmin && !isServerAdmin) {
-      console.log('Permission denied for user:', user.discord_id, 'is_admin:', user.is_admin)
+      console.log('Permission denied for user:', user.id, 'is_admin:', user.is_admin)
       return NextResponse.json({ error: 'No permission to create channels' }, { status: 403 })
     }
     
@@ -159,8 +159,8 @@ export async function PUT(request, { params }) {
     let isServerAdmin = false
     if (!isGlobalAdmin) {
       const serverAdminRecord = await queryOne(
-        `SELECT 1 FROM server_admins WHERE server_id = ? AND discord_id = ? AND permission_level IN ('admin', 'moderator')`,
-        [dbServerId, user.discord_id]
+        `SELECT 1 FROM server_admins WHERE server_id = ? AND user_id = ? AND permission_level IN ('admin', 'moderator')`,
+        [dbServerId, user.id]
       )
       isServerAdmin = !!serverAdminRecord
     }

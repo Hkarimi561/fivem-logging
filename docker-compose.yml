@@ -61,9 +61,8 @@ services:
       MYSQL_PASSWORD: fivem
       MYSQL_DATABASE: fivem_logs
       JWT_SECRET: ${JWT_SECRET:-change-me-use-openssl-rand-hex-32-in-production}
-      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
-      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
-      DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI:-http://62.60.129.231:3001/api/auth/callback}
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-admin}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-change-this-password}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://62.60.129.231:3000}
       DASHBOARD_PORT: "3001"
     depends_on:

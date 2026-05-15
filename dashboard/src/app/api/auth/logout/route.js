@@ -9,8 +9,7 @@ export async function POST() {
     await query(`DELETE FROM sessions WHERE token = ?`, [token])
   }
   cookieStore.delete('auth_token')
-  cookieStore.delete('discord_token')
-  
+
   return NextResponse.json({ success: true })
 }
 
@@ -21,8 +20,6 @@ export async function GET(request) {
     await query(`DELETE FROM sessions WHERE token = ?`, [token])
   }
   cookieStore.delete('auth_token')
-  cookieStore.delete('discord_token')
-  
+
   return NextResponse.redirect(new URL('/login', request.url))
 }
-

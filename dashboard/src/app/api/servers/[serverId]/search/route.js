@@ -30,8 +30,8 @@ export async function GET(request, { params }) {
     // Admin bypass
     const isGlobalAdmin = Boolean(user.is_admin)
     const serverAdmin = await query(
-      `SELECT permission_level FROM server_admins WHERE server_id = ? AND discord_id = ? AND permission_level IN ('admin','moderator')`,
-      [dbServerId, user.discord_id]
+      `SELECT permission_level FROM server_admins WHERE server_id = ? AND user_id = ? AND permission_level IN ('admin','moderator')`,
+      [dbServerId, user.id]
     )
     const isServerAdmin = serverAdmin.length > 0
     if (!isGlobalAdmin && !isServerAdmin) {

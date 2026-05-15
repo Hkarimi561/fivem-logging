@@ -87,7 +87,6 @@ export default function ServerManagePage() {
         body: JSON.stringify({
           name: server.name,
           identifier: server.identifier,
-          discordGuildId: server.discord_guild_id,
           isActive: server.is_active
         })
       })
@@ -160,7 +159,7 @@ export default function ServerManagePage() {
       const res = await fetch(`/api/admin/servers/${serverId}/admins`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ discordId: newAdminId })
+        body: JSON.stringify({ userId: parseInt(newAdminId, 10) })
       })
       
       if (res.ok) {
@@ -175,17 +174,16 @@ export default function ServerManagePage() {
     }
   }
 
-  async function updateAdminPermission(discordId, permissionLevel) {
+  async function updateAdminPermission(userId, permissionLevel) {
     try {
       const res = await fetch(`/api/admin/servers/${serverId}/admins`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ discordId, permissionLevel })
+        body: JSON.stringify({ userId, permissionLevel })
       })
       if (res.ok) {
-        // Update local state
-        setAdmins(prev => prev.map(a => 
-          a.discord_id === discordId ? { ...a, permission_level: permissionLevel } : a
+        setAdmins(prev => prev.map(a =>
+          a.user_id === userId ? { ...a, permission_level: permissionLevel } : a
         ))
       }
     } catch (error) {
@@ -263,15 +261,6 @@ export default function ServerManagePage() {
                   value={server.identifier}
                   onChange={e => setServer({ ...server, identifier: e.target.value })}
                   className="bg-zinc-800 border-zinc-700"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-zinc-400 mb-2 block">Discord Guild ID (zorunlu)</label>
-                <Input
-                  value={server.discord_guild_id || ''}
-                  onChange={e => setServer({ ...server, discord_guild_id: e.target.value })}
-                  className="bg-zinc-800 border-zinc-700"
-                  required
                 />
               </div>
               <div>
@@ -425,7 +414,7 @@ export default function ServerManagePage() {
                   Server Admins
                 </CardTitle>
                 <CardDescription className="text-zinc-400">
-                  Discord users who can manage this server
+                  Panel users who can manage this server
                 </CardDescription>
               </div>
               <Button onClick={() => setShowAddAdmin(!showAddAdmin)} className="bg-red-600 hover:bg-red-700">
@@ -440,7 +429,7 @@ export default function ServerManagePage() {
                 <div className="flex items-center gap-2">
                   <div className="relative flex-1">
                     <Input
-                      placeholder="Search by username or Discord ID"
+                      placeholder="Search by username"
                       value={userSearch}
                       onChange={async (e) => {
                         const val = e.target.value
@@ -476,14 +465,14 @@ export default function ServerManagePage() {
                             type="button"
                             key={opt.id}
                             onClick={() => {
-                              setNewAdminId(opt.discord_id)
-                              setUserSearch(`${opt.discord_username} (${opt.discord_id})`)
+                              setNewAdminId(String(opt.id))
+                              setUserSearch(`${opt.display_name || opt.username} (@${opt.username})`)
                               setUserOptions([])
                             }}
                             className="w-full text-left px-3 py-2 hover:bg-zinc-800"
                           >
-                            <div className="text-sm text-white">{opt.discord_username}</div>
-                            <div className="text-xs text-zinc-500">{opt.discord_id}</div>
+                            <div className="text-sm text-white">{opt.display_name || opt.username}</div>
+                            <div className="text-xs text-zinc-500">@{opt.username}</div>
                           </button>
                         ))}
                       </div>
@@ -492,7 +481,7 @@ export default function ServerManagePage() {
                   <Button type="submit" className="bg-green-600 hover:bg-green-700">Add</Button>
                   <Button type="button" variant="outline" onClick={() => {setShowAddAdmin(false); setUserSearch(''); setUserOptions([]);}}>Cancel</Button>
                 </div>
-                <p className="text-xs text-zinc-500">Selected user will be added by Discord ID. You can search with at least 2 characters.</p>
+                <p className="text-xs text-zinc-500">Search and select a panel user (at least 2 characters).</p>
               </form>
             )}
             
@@ -501,27 +490,18 @@ export default function ServerManagePage() {
                 {admins.map(admin => (
                   <div key={admin.id} className="flex items-center justify-between p-3 bg-zinc-800/30 rounded-lg border border-zinc-800">
                     <div className="flex items-center gap-3">
-                      {admin.discord_avatar ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img 
-                          src={`https://cdn.discordapp.com/avatars/${admin.discord_id}/${admin.discord_avatar}.png`}
-                          className="w-8 h-8 rounded-full"
-                          alt=""
-                        />
-                      ) : (
-                        <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center">
-                          <Users className="h-4 w-4 text-zinc-400" />
-                        </div>
-                      )}
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-semibold text-white">
+                        {(admin.display_name || admin.username || '?').slice(0, 2).toUpperCase()}
+                      </div>
                       <div>
-                        <span className="font-medium text-white">{admin.discord_username || 'Unknown'}</span>
-                        <p className="text-xs text-zinc-500">{admin.discord_id}</p>
+                        <span className="font-medium text-white">{admin.display_name || admin.username || 'Unknown'}</span>
+                        <p className="text-xs text-zinc-500">@{admin.username}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Select
                         value={admin.permission_level}
-                        onChange={(e) => updateAdminPermission(admin.discord_id, e.target.value)}
+                        onChange={(e) => updateAdminPermission(admin.user_id, e.target.value)}
                         className="bg-zinc-900/50 border-zinc-800 text-zinc-300 text-xs"
                       >
                         <option value="viewer">viewer</option>

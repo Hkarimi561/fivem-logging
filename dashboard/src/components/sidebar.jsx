@@ -104,15 +104,9 @@ export function Sidebar() {
       {user && (
         <div className="px-3 py-2 border-t border-zinc-800">
           <div className="flex items-center gap-3 p-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img 
-              src={user.avatar 
-                ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png`
-                : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discordId || '0') % 5}.png`
-              }
-              alt={user.username}
-              className="w-8 h-8 rounded-full"
-            />
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs font-semibold text-white shrink-0">
+              {(user.displayName || user.username || '?').slice(0, 2).toUpperCase()}
+            </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">{user.username}</p>
               {user.isAdmin === true && (

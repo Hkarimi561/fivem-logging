@@ -107,8 +107,8 @@ export default function AdminUserDetailPage() {
             </Button>
           </Link>
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-white">{user.discord_username}</h2>
-            <p className="text-zinc-400 text-sm">Discord ID: {user.discord_id}</p>
+            <h2 className="text-3xl font-bold tracking-tight text-white">{user.display_name || user.username}</h2>
+            <p className="text-zinc-400 text-sm">@{user.username}</p>
           </div>
           <div className="flex-1" />
           <Button 
@@ -132,23 +132,17 @@ export default function AdminUserDetailPage() {
               User Profile
             </CardTitle>
             <CardDescription className="text-zinc-400">
-              Discord account details
+              Account details
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center gap-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src={user.discord_avatar 
-                  ? `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.discord_avatar}.png`
-                  : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discord_id) % 5}.png`
-                }
-                alt={user.discord_username}
-                className="w-12 h-12 rounded-full"
-              />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-sm font-semibold text-white">
+                {(user.display_name || user.username || '?').slice(0, 2).toUpperCase()}
+              </div>
               <div>
-                <p className="text-sm text-zinc-300">Username: {user.discord_username}</p>
-                <p className="text-sm text-zinc-500">Email: {user.discord_email || "N/A"}</p>
+                <p className="text-sm text-zinc-300">Username: {user.username}</p>
+                <p className="text-sm text-zinc-500">Display name: {user.display_name || user.username}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">

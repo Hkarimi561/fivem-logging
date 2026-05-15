@@ -28,8 +28,8 @@ export async function GET(request, { params }) {
     
     // Check server admin
     const serverAdmin = await queryOne(
-      `SELECT * FROM server_admins WHERE server_id = ? AND discord_id = ?`,
-      [serverId, user.discord_id]
+      `SELECT * FROM server_admins WHERE server_id = ? AND user_id = ?`,
+      [serverId, user.id]
     )
     
     if (serverAdmin) {

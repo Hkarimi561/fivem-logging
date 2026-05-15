@@ -58,23 +58,17 @@ export default function SettingsPage() {
               Your Profile
             </CardTitle>
             <CardDescription className="text-zinc-400">
-              Your Discord account information
+              Your account information
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src={user.avatar 
-                  ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png`
-                  : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discordId) % 5}.png`
-                }
-                alt={user.username}
-                className="w-16 h-16 rounded-full"
-              />
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-lg font-semibold text-white">
+                {(user.displayName || user.username || '?').slice(0, 2).toUpperCase()}
+              </div>
               <div>
-                <h3 className="text-lg font-medium text-white">{user.username}</h3>
-                <p className="text-sm text-zinc-500">Discord ID: {user.discordId}</p>
+                <h3 className="text-lg font-medium text-white">{user.displayName || user.username}</h3>
+                <p className="text-sm text-zinc-500">@{user.username}</p>
                 {user.isAdmin === true && (
                   <Badge className="mt-1 bg-purple-500/20 text-purple-400 border-purple-500/30">
                     Admin
